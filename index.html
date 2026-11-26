@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Advent Calendar 🎄</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-top: #0f241d;
+      --bg-bottom: #18382c;
+      --gold: #e6c27a;
+      --gold-dark: #b89146;
+      --cream: #fdf8ee;
+      --red: #a83232;
+      --red-dark: #7d2222;
+      --text: #2c241e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, var(--bg-bottom), var(--bg-top));
+      color: var(--cream);
+      font-family: 'Quicksand', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.2rem;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Falling Snow */
+    .snow-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .snowflake {
+      position: absolute;
+      top: -10px;
+      color: rgba(255, 255, 255, 0.55);
+      user-select: none;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(105vh) rotate(360deg);
+      }
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      max-width: 540px;
+      margin-bottom: 2.2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      color: var(--gold);
+      margin-bottom: 0.6rem;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    header p {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: rgba(253, 248, 238, 0.88);
+    }
+
+    /* Calendar Grid */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(140px, 200px));
+      gap: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 420px) {
+      .calendar-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        width: 100%;
+      }
+    }
+
+    /* Door Card */
+    .door-slot {
+      aspect-ratio: 1 / 1.15;
+      perspective: 1000px;
+      position: relative;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.35);
+      box-shadow: inset 0 4px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    .door-inside {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 14px;
+      border: 1px dashed rgba(230, 194, 122, 0.35);
+    }
+
+    .door-inside .icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .door-inside span {
+      font-size: 0.85rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .door {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, var(--red), var(--red-dark));
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transform-origin: left center;
+      transition: transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      user-select: none;
+    }
+
+    .door::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1px solid rgba(230, 194, 122, 0.45);
+      border-radius: 9px;
+      pointer-events: none;
+    }
+
+    .door-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .door-label {
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(253, 248, 238, 0.85);
+      margin-top: 0.35rem;
+    }
+
+    .door-status {
+      margin-top: 0.6rem;
+      font-size: 0.9rem;
+    }
+
+    .door.unlocked:hover {
+      transform: rotateY(-12deg);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
+    }
+
+    .door.opened {
+      transform: rotateY(-108deg);
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .door.locked {
+      background: linear-gradient(145deg, #2b443a, #1d3029);
+      border-color: rgba(230, 194, 122, 0.4);
+      cursor: not-allowed;
+    }
+
+    .door.locked .door-number {
+      color: rgba(230, 194, 122, 0.55);
+    }
+
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      background: var(--cream);
+      color: var(--text);
+      padding: 0.75rem 1.3rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      transform: translateY(16px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Modal Popup */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 18, 14, 0.78);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 30;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--cream);
+      color: var(--text);
+      max-width: 420px;
+      width: 100%;
+      border-radius: 18px;
+      padding: 2rem 1.7rem 1.7rem;
+      border: 3px solid var(--gold);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      transform: scale(0.92);
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+
+    .modal-backdrop.open .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-day {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--red);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      margin-bottom: 1rem;
+      color: var(--bg-top);
+    }
+
+    .modal-message {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.3rem;
+    }
+
+    .clue-box {
+      background: #f3ead8;
+      border-left: 4px solid var(--gold-dark);
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+
+    .clue-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6b4c1e;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    .clue-text {
+      font-size: 0.98rem;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: var(--red);
+      color: var(--cream);
+      border: none;
+      padding: 0.75rem 1.8rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+      background: var(--red-dark);
+    }
+
+    footer {
+      margin-top: 2.2rem;
+      font-size: 0.85rem;
+      color: rgba(253, 248, 238, 0.55);
+      z-index: 1;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="snow-container" id="snow"></div>
+
+  <header>
+    <h1>🚨 Elf-Ex Tracking</h1>
+    <p>Elf Jayne got stuck in the mail with your real calendar! Until she arrives on Dec 4th, open one door each morning for a live update and an emergency chocolate drop. ❤️</p>
+  </header>
+
+  <main class="calendar-grid" id="calendarGrid"></main>
+
+  <footer>Made with love for you 🎄</footer>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-card">
+      <div class="modal-day" id="modalDay"></div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-message" id="modalMessage"></p>
+      <div class="clue-box">
+        <span class="clue-label">🍫 Today's Chocolate Clue</span>
+        <p class="clue-text" id="modalClue"></p>
+      </div>
+      <button class="close-btn" id="closeModal">Got it, I'm on the hunt!</button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================
+    // 1. CUSTOMIZE YOUR MESSAGES & CLUES HERE
+    // =========================================================
+    const DAYS = [
+      {
+        day: 1,
+        icon: "📦",
+        title: "Day 1: Stuck in the Sorting Hub!",
+        message: "Live update from Elf Jayne: 'SOS! I accidentally got tape-gunned inside a parcel bin at the mail depot. Your real calendar is safe, just delayed until Dec 4th! In the meantime, I beamed an emergency chocolate into your house so you don't miss Dec 1st!'",
+        clue: "Check inside Ixi's barracks as he should be keeping it safe...you may have to bribe him with Dreamies..."
+      },
+      {
+        day: 2,
+        icon: "🛷",
+        title: "Day 2: On the Move!",
+        message: "Live update from Elf Jayne: 'Good news—I chewed through the cardboard and bribed a delivery driver with a candy cane! We’re back on the road, just two days out. Go grab today’s morale-boosting chocolate!'",
+        clue: "Pay hommage to the Teas for your little treat..."
+      },
+      {
+        day: 3,
+        icon: "🧭",
+        title: "Day 3: Almost There!",
+        message: "Live update from Elf Jayne: 'Spotted your town's welcome sign! (Got briefly lost looking for hot cocoa, back on track now.)'",
+        clue: "Go visit KK's spot and wish him a Merry Christmas..."
+      },
+      {
+        day: 4,
+        icon: "🎄",
+        title: "Day 4: Delivery Day!",
+        message: "Live update from Elf Jayne: 'TOUCHDOWN! Your real advent calendar arrives today! My job here is done—enjoy one last bonus chocolate from me before I hitch a ride back to the North Pole. Happy Advent!'",
+        clue: "...Dont be greedy now! ;)"
+      }
+    ];
+
+    // Set to true ONLY while testing in November! Change back to false before sending to him.
+    const TEST_MODE = false;
+
+    // =========================================================
+    // 2. CALENDAR LOGIC
+    // =========================================================
+    const isPreview = TEST_MODE || window.location.search.includes("preview");
+    const STORAGE_KEY = "mini_advent_opened_days";
+    let openedDays = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+    const grid = document.getElementById("calendarGrid");
+    const toast = document.getElementById("toast");
+    const modalBackdrop = document.getElementById("modalBackdrop");
+
+    function isDayUnlocked(dayNumber) {
+      if (isPreview) return true;
+      const now = new Date();
+      // Month is 0-indexed in JavaScript (11 = December)
+      const unlockDate = new Date(now.getFullYear(), 11, dayNumber, 0, 0, 0);
+      return now >= unlockDate;
+    }
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function openModal(item) {
+      document.getElementById("modalDay").textContent = `December ${item.day}`;
+      document.getElementById("modalTitle").textContent = item.title;
+      document.getElementById("modalMessage").textContent = item.message;
+      document.getElementById("modalClue").textContent = item.clue;
+      modalBackdrop.classList.add("open");
+    }
+
+    function renderCalendar() {
+      grid.innerHTML = "";
+      DAYS.forEach((item) => {
+        const unlocked = isDayUnlocked(item.day);
+        const alreadyOpened = openedDays.includes(item.day);
+
+        const slot = document.createElement("div");
+        slot.className = "door-slot";
+
+        // Underneath content (visible once door swings open)
+        const inside = document.createElement("div");
+        inside.className = "door-inside";
+        inside.innerHTML = `
+          <div class="icon">${item.icon}</div>
+          <span>Read Clue Again</span>
+        `;
+        inside.addEventListener("click", () => openModal(item));
+
+        // The door itself
+        const door = document.createElement("div");
+        door.className = `door ${unlocked ? "unlocked" : "locked"} ${alreadyOpened && unlocked ? "opened" : ""}`;
+        door.innerHTML = `
+          <div class="door-number">${item.day}</div>
+          <div class="door-label">Dec ${item.day}</div>
+          <div class="door-status">${unlocked ? "✨ Tap to open" : "🔒 Locked"}</div>
+        `;
+
+        door.addEventListener("click", () => {
+          if (!unlocked) {
+            door.classList.remove("shake");
+            void door.offsetWidth; // restart animation
+            door.classList.add("shake");
+            showToast(`No peeking! Come back on December ${item.day} 👀`);
+            return;
+          }
+
+          door.classList.add("opened");
+          if (!openedDays.includes(item.day)) {
+            openedDays.push(item.day);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(openedDays));
+          }
+          setTimeout(() => openModal(item), 380);
+        });
+
+        slot.appendChild(inside);
+        slot.appendChild(door);
+        grid.appendChild(slot);
+      });
+    }
+
+    // Close modal handlers
+    document.getElementById("closeModal").addEventListener("click", () => {
+      modalBackdrop.classList.remove("open");
+    });
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) modalBackdrop.classList.remove("open");
+    });
+
+    // Generate subtle snowflakes
+    const snowContainer = document.getElementById("snow");
+    for (let i = 0; i < 28; i++) {
+      const flake = document.createElement("div");
+      flake.className = "snowflake";
+      flake.textContent = "❄";
+      flake.style.left = Math.random() * 100 + "vw";
+      flake.style.fontSize = (Math.random() * 10 + 10) + "px";
+      flake.style.animationDuration = (Math.random() * 6 + 6) + "s";
+      flake.style.animationDelay = (Math.random() * -10) + "s";
+      snowContainer.appendChild(flake);
+    }
+
+    renderCalendar();
+  </script>
+</body>
+</html>
